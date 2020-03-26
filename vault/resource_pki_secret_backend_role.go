@@ -18,6 +18,15 @@ var (
 	pkiSecretBackendRoleNameFromPathRegex    = regexp.MustCompile("^.+/roles/(.+)$")
 )
 
+func contains(slice []string, str string) bool {
+	for _, a := range slice {
+		if a == str {
+			return true
+		}
+	}
+	return false
+}
+
 func pkiSecretBackendRoleResource() *schema.Resource {
 	return &schema.Resource{
 		Create: pkiSecretBackendRoleCreate,
@@ -184,6 +193,10 @@ func pkiSecretBackendRoleResource() *schema.Resource {
 				Required:    false,
 				Optional:    true,
 				Description: "Specify the allowed key usage constraint on issued certificates.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					defaults := []string{"0", "DigitalSignature", "KeyAgreement", "KeyEncipherment"}
+					return old == "" && contains(defaults, new)
+				},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
